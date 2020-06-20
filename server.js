@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
     res.render('main',{ nRooms })
 })
 
-app.get('/waitingroom', (req, res) => {
+app.get('/room5', (req, res) => {
     res.send('Waiting for Opponent')
 })
 
@@ -42,13 +42,22 @@ io.sockets.on('connect', function newConnection(socket) {
         pgnServer = pgn; //storing current pgn in server
         console.log(pgn);
     });
-    console.log(getUserInRoom('room1'))
 }) 
 
 io.sockets.on('connection',  function AllConnected(socket) {
 
     console.log("new server connected : " + socket.id);
-    
+    socket.on('readyMatch', function() {
+        PmatchMake.push(socket);
+        console.log(PmatchMake)
+        if(PmatchMake.length > 1){
+            PmatchMake[0].emit('roomName', 'room'+ nRooms)
+            PmatchMake[1].emit('roomName', 'room'+ nRooms)
+            nRooms++;
+            PmatchMake.shift()
+            PmatchMake.shift()
+        }
+    })
     
 })
 
