@@ -1,7 +1,9 @@
+
 var socket;
 
 socket = io.connect('http://localhost:3000');
 socket.on('movemade',updatePos);
+
 
 function updatePos(pgn) {
   console.log("Other played " + pgn)
@@ -9,6 +11,7 @@ function updatePos(pgn) {
   board.position(game.fen())
   updateStatus()
 }
+
 
 function moveMade() {
   console.log(game.pgn());
@@ -123,7 +126,7 @@ function updateStatus () {
   $status.html(status)
   $pgn.html(game.pgn())
 }
-
+socket.on('updatepgn',updatePos)
 var config = {
   draggable: true,
   position: 'start',
@@ -136,7 +139,8 @@ var config = {
 
 board = Chessboard('myBoard', config)
 updateStatus()
-moveMade()
+socket.on('updatepgn',updatePos)
+
 
 
 
