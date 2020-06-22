@@ -1,21 +1,25 @@
+var IamWhite ;
 
 var socket;
+var firstTimeConnected = true;
 
 socket = io.connect('http://localhost:3000');
-socket.on('movemade',updatePos);
 
+socket.on('movemade',updatePos);
 
 function updatePos(pgn) {
   console.log("Other played " + pgn)
   game.load_pgn(pgn)
   board.position(game.fen())
   updateStatus()
+  
 }
 
 
 function moveMade() {
   console.log(game.pgn());
-  socket.emit('movemade',game.pgn());
+  
+  socket.emit('movemade', roomName, game.pgn());
 }
 
 var board = null
@@ -42,6 +46,12 @@ function greySquare (square) {
 }
 
 function onDragStart (source, piece) {
+  if((game.turn() === 'w' && IamWhite === false) ||
+  (game.turn() === 'b' && IamWhite === true) ){
+    return false;
+  }
+  
+
   // do not pick up pieces if the game is over
   if (game.game_over()) return false
 
@@ -69,6 +79,13 @@ function onDrop (source, target) {
 }
 
 function onMouseoverSquare (square, piece) {
+
+  if((game.turn() === 'w' && IamWhite === false) ||
+  (game.turn() === 'b' && IamWhite === true) ){
+    return ;
+  }
+
+
   // get list of possible moves for this square
   var moves = game.moves({
     square: square,
@@ -139,13 +156,27 @@ var config = {
 
 board = Chessboard('myBoard', config)
 updateStatus()
-socket.on('updatepgn',updatePos)
 
 
+//socket.on('updatepgn',updatePos)
 
+if(firstTimeConnected) {
+  socket.emit('connectedToRoom', roomName);
+  firstTimeConnected = false;
+}
 
-
-
+socket.on('piececolor',function(str){
+  if(str == 'w'){
+    board.orientation('white');
+    IamWhite = true;
+  }
+  
+  if(str == 'b'){
+    board.orientation('black');
+    IamWhite = false;
+  }
+  
+})
 
 
 
