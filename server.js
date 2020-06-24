@@ -1,35 +1,94 @@
-var pgnServer = 'start';
+             //                    all required modules / framework                //
+
 const express = require('express');
+const bodyParser = require("body-Parser");
 const { compile } = require('ejs');
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
+ 
+const mongoose = require('mongoose');    // mongoDB connection through moongose
+mongoose.connect("mongodb://localhost:27017/usersDB",{ useUnifiedTopology: true,
+    useNewUrlParser: true,
+   })
+   .then(() => console.log('DB Connected!'))    // promise resolved
+.catch(err => {
+   console.log(error in connecting);
+});
 
-var nRooms = 1;
-var PmatchMake = [];
-var games = [];
-
-app.set('views', './views')
+app.set('views', './views')   // setting ejs
 app.set('view engine', 'ejs')
 
 app.use(express.static(__dirname + '/public'))
 app.use(express.urlencoded({ extended: true}))
 
-// console.log("Server is running");
+app.use(bodyParser.urlencoded({      // used to get posted date on page 
+    extended: true
+}));
+
+var nRooms = 1;
+var PmatchMake = [];
+var games = [];
+var pgnServer = 'start';
+
 app.get('/', (req, res) => {
-    res.render('main',{ nRooms })
+
+    res.sendFile(__dirname + "/views/homepage.html");
 })
+
+// schema  /// login / signup
+const  userSchema =  {
+     email: String,
+     password:  String,
+};
+
+const User = new mongoose.model("User", userSchema);  // model name is User that uses userSchema
+
+app.post('/', (req, res) => {
+  const newUser = User({
+      email : req.body.mailID,
+      password : req.body.password 
+  });
+   newUser.save((err) => {
+       if(err){
+           console.log(err);
+       } else{
+           res.render("main", {Rooms : nRooms});
+       } 
+   });
+});
+
+app.post('/login', (req, res) => {
+    const mailID = req.body.username;
+    const password = req.body.password;
+
+     User.findOne({email : mailID}, (err, foundUser) => {
+         if(err){
+             console.log(err);
+         }else{
+             if(foundUser){
+                 if(foundUser.password === password){
+                      res.render("main", {Rooms : 61});
+                   }
+                   else{
+                       console.log("wrong user");
+                   }
+               }
+           }
+       });
+  });
+
 
     
 app.get('/:room', (req, res) => {
     res.render('room'
-        , { roomName : req.params.room }
-    )
+        , { roomName : req.params.room })
 })
 
 
 server.listen(3000)
 
+//          scoket.io logics        /////////
 
 io.sockets.on('connect', function newConnection(socket) {
     //socket.emit('updatepgn',pgnServer);
@@ -87,6 +146,7 @@ io.sockets.on('connection',  function AllConnected(socket) {
     })
     
 })
+
 
 
 
