@@ -1,0 +1,23 @@
+body{
+     margin-top : 0px;
+    /* background: rgb(239,150,45);
+    background: linear-gradient(254deg, rgba(239,150,45,0.9979342078628326) 4%, rgba(252,248,243,1) 100%); */
+/* 
+    background: rgb(239,150,44);
+background: linear-gradient(31deg, rgba(239,150,44,1) 0%, rgba(252,248,243,1) 100%); */
+/* 
+background: rgb(252,248,243);
+background: linear-gradient(53deg, rgba(252,248,243,1) 1%, rgba(242,164,70,1) 100%); */
+
+   background-color: #f4f6ff;
+
+}
+
+
+.head{
+     margin-top : 0px;
+    width : 100%;
+    height : 150px;
+
+    
+}
