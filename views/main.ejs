@@ -7,11 +7,18 @@
     <link rel="stylesheet" href="style2.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 </head>
-<body>
-    <h1>Tap to Matchmake</h1>
-    <%  nrooms = JSON.stringify(nRooms) %>
-    <!-- <button><a href="/room<%= nrooms %>">Tap here</a></button> -->
-    <button id="tapButton">Tap here</button>
+<body> 
+    <div>
+        <h1>Tap to Matchmake</h1>
+        <button id="tapButton">Tap here</button>
+    </div>
+
+    <div>
+    <h1>LIVE matches</h1>
+      <h2><%= Rooms - 1 %></h2>  
+    </div>
+
+  
     <script src="script2.js"></script>
 </body>
 </html>
