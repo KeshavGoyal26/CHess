@@ -1,4 +1,6 @@
+
 var IamWhite ;
+var resign = 0; // 1 for white, -1 for black
 
 var socket;
 var firstTimeConnected = true;
@@ -14,7 +16,23 @@ function updatePos(pgn) {
   updateStatus()
   
 }
+const resignButton = document.getElementById("resign")
 
+resignButton.addEventListener("click",function Iresign(){
+  resign = 1;
+  updateStatus()
+  socket.emit('sendresign', roomName, IamWhite, game.pgn())
+  resignButton.disabled = true
+})
+
+socket.on('recresign',function updateresign(color){
+    if(color == true)
+    resign = 1
+    if(color == false)
+    resign = -1
+    updateStatus()
+    resignButton.disabled = true
+})
 
 function moveMade() {
   console.log(game.pgn());
@@ -51,6 +69,7 @@ function onDragStart (source, piece) {
     return false;
   }
   
+  if(resign == 1 || resign == -1) return false
 
   // do not pick up pieces if the game is over
   if (game.game_over()) return false
@@ -85,6 +104,7 @@ function onMouseoverSquare (square, piece) {
     return ;
   }
 
+  if(resign == 1 || resign == -1) return 
 
   // get list of possible moves for this square
   var moves = game.moves({
@@ -140,6 +160,13 @@ function updateStatus () {
     }
   }
 
+  if(resign == 1){
+    status = 'White resigned the game'
+  }
+  if(resign == -1){
+    status = 'Black resigned the game'
+  }
+
   $status.html(status)
   $pgn.html(game.pgn())
 }
@@ -163,6 +190,8 @@ updateStatus()
 if(firstTimeConnected) {
   socket.emit('connectedToRoom', roomName);
   firstTimeConnected = false;
+  // game.load_pgn(roomPgn)
+  // board.position(game.fen())
 }
 
 socket.on('piececolor',function(str){
