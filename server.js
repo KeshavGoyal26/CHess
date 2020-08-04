@@ -1,5 +1,4 @@
 //                    All required modules / framework                //
-
 const express = require('express');
 const bodyParser = require("body-Parser");
 const {
@@ -10,8 +9,13 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const bcrypt = require('bcrypt')
 const saltRounds = 10
+const session = require('express-session')
+const passport = require('passport')
+const LocalStrategy = require('passport-local')
+const passportLocalMongoose = require('passport-local-mongoose')
 
 const mongoose = require('mongoose'); // mongoDB connection through moongose
+
 
 mongoose.connect("mongodb://localhost:27017/usersDB", {
         useUnifiedTopology: true,
@@ -21,6 +25,8 @@ mongoose.connect("mongodb://localhost:27017/usersDB", {
     .catch(err => {
         console.log(error in connecting);
     });
+
+mongoose.set("useCreateIndex", true)
 
 app.set('views', './views') // setting ejs
 app.set('view engine', 'ejs')
@@ -32,7 +38,21 @@ app.use(express.urlencoded({
 
 app.use(bodyParser.urlencoded({ // used to get posted date on page 
     extended: true
-}));
+}))
+
+app.use(session({
+    name : "sid",
+    cookie : {
+        maxAge : 1000*6000,
+        sameSite : true,
+    },
+    secret : "mysecret",
+    resave : false,
+    saveUninitialized : false
+}))
+
+app.use(passport.initialize())
+app.use(passport.session())
 
 var nRooms = 1;
 var PmatchMake = [];
@@ -40,29 +60,57 @@ var games = [];
 var pgnServer = 'start';
 
 app.get('/', (req, res) => {
-    res.render('login')
+    res.redirect('/home')
 })
 
 app.get('/login', (req, res) => {
-    res.render('login')
+    if(req.isAuthenticated()){
+        res.redirect('/')
+    }
+    else {
+        res.render('login')
+    }
 })
 
 app.get('/register', (req, res) => {
-    res.render('register')
+    if(req.isAuthenticated()){
+        res.redirect('/')
+    }
+    else {
+        res.render('register')
+    }
 })
+
+app.get('/home', (req, res) => {
+    
+    if(req.isAuthenticated()){
+        res.render('main')
+    }
+    else {
+        res.redirect('/login')
+    }
+    
+})
+
 // schema  /// login / signup
-const userSchema = {
-    email:{
-        type : String,
-        required : true,
-        unique : 1,
-        trim : true
+const userSchema = new mongoose.Schema ({
+    username:{
+        type : String
     } ,
     password:{
-        type : String,
-        required : true
-    } ,
-};
+        type : String
+    } 
+});
+
+userSchema.plugin(passportLocalMongoose)
+
+
+const User = new mongoose.model("User", userSchema); // model name is User that uses userSchema
+
+passport.use(new LocalStrategy(User.authenticate()))
+
+passport.serializeUser(User.serializeUser())
+passport.deserializeUser(User.deserializeUser())
 
 const gameSchema = {
     room:{
@@ -79,7 +127,6 @@ const gameSchema = {
     }
 }
 
-const User = new mongoose.model("User", userSchema); // model name is User that uses userSchema
 const Game = new mongoose.model("Game", gameSchema);
 
 
@@ -87,69 +134,41 @@ const Game = new mongoose.model("Game", gameSchema);
 
 
 app.post('/register', (req, res) => {
-
-    bcrypt.hash(req.body.password, saltRounds, function(err, hashedPassword) {
-
-        User.findOne({
-            email:req.body.mailID
-        },(err, founduser) => {
-            if(!founduser){
-                //if email not taken, register new 
-                const newUser = User({
-                    email: req.body.mailID,
-                    password: hashedPassword
-                });
-                newUser.save((err) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        res.render("main", {
-                            Rooms: nRooms
-                        });
-                    }
-                });
-            }
-            else{
-                res.send("Email already taken.")
-            }
-        })
-
+    User.register(new User({username : req.body.username}), req.body.password, function(err, user){
+        if(err){
+            console.log(err)
+            res.redirect('/register')
+        }
+        else{
+            passport.authenticate('local')(req, res, function(){
+                res.redirect('/home')
+            })
+        }
     })
-
-    
 });
 
 app.post('/login', (req, res) => {
-    const mailID = req.body.username;
-    const password = req.body.password;
+    const user = new User({
+        username : req.body.username,
+        password : req.body.password
+    })
 
-    User.findOne({
-        email: mailID
-    }, (err, foundUser) => {
-        if (err) {
-            console.log(err);
-        } else {
-            if (foundUser) {
-                bcrypt.compare(password, foundUser.password, function(err, result) {
-                    if(result === true) {
-                        res.render("main")
-                    }
-                    else {
-                        console.log("wrong user");
-                        res.send('Wrong Password Entered')
-                    }
-                })
-                } 
-             else {
-                res.send('User not found')
-            }
+    req.login(user, function(err) {
+        if(err){
+            console.log(err)
         }
-    });
+        else{
+            passport.authenticate('local')(req, res, function(){
+                res.redirect('/home')
+            })
+        }
+    })
+    console.log(req.user.username)
 });
 
 
-
 app.get('/:room', (req, res) => {
+    console.log("user : " + req.user.username)
     var gameoverPgn = 'start'
 
     Game.findOne({
@@ -161,7 +180,7 @@ app.get('/:room', (req, res) => {
         else{
             if(foundGame != null)
             gameoverPgn = foundGame.pgn
-            console.log(gameoverPgn)
+            // console.log(gameoverPgn)
         }
     })
     res.render('room', {
@@ -223,7 +242,7 @@ io.sockets.on('connect', function newConnection(socket) {
 
 io.sockets.on('connection', function AllConnected(socket) {
 
-    console.log("new server connected : " + socket.id);
+    console.log("New socket connected : " + socket.id);
     socket.on('readyMatch', function () {
         if (!PmatchMake.includes(socket)) {
             PmatchMake.push(socket);
