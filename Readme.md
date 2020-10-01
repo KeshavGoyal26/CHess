@@ -1,0 +1,1 @@
+This is a chess game I created with the help of chess.js and chessbaord.js.I have creadt a login screen whose data is stored in mongodb and only authenticated user cany play.I also integrated socket.io so that two player can play with each other after logging in.
