@@ -1,0 +1,15 @@
+footer
+{
+    text-align: center;
+    height: 4%; 
+    width: 100%; 
+    background-color: aqua; 
+    position: fixed; 
+    bottom: 0;
+    color: black;
+}
+p
+{   
+    font-weight: 800 ;
+    margin: .2% auto 1%;
+}

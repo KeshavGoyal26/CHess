@@ -5,7 +5,9 @@ socket = io.connect('http://localhost:3000');
 tapButton = document.getElementById('tapButton');
 
 tapButton.onclick = function() {
-    socket.emit('readyMatch', 'Ready to Matchmake')
+    document.getElementById('starttxt').innerText="Waiting for Opponent";
+    document.getElementById('startbtn').src="https://media.giphy.com/media/12zV7u6Bh0vHpu/giphy.gif";
+    socket.emit('readyMatch', 'Ready to Matchmake');
 }
 
 socket.on('roomName', function(roomname) {

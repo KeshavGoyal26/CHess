@@ -1,0 +1,14 @@
+body {
+    background-image: url("../img/resources/mainbg.jpg");
+    color: aliceblue;
+}
+.container
+{
+    text-align: center;
+    padding: 10%;
+}
+.title
+{
+    padding-top: 1%;
+    text-align: center;
+}
