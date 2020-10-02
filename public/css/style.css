@@ -1,0 +1,16 @@
+body
+{
+    background-color: grey;
+}
+.container-fluid
+{
+    padding-top: 2%;
+    padding-left: 35%;
+    padding-right: auto;
+}
+.container
+{
+    padding-top: 1%;
+    margin-bottom: 3%;    
+    color: honeydew;
+}
