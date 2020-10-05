@@ -1,9 +1,7 @@
 //                    All required modules / framework                //
 const express = require('express');
 const bodyParser = require("body-Parser");
-const {
-    compile
-} = require('ejs');
+const {compile} = require('ejs');
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
@@ -92,6 +90,10 @@ app.get('/home', (req, res) => {
     
 })
 
+app.get('/notfound',(req,res) => {
+    res.render('notfound');
+})
+
 // schema  /// login / signup
 const userSchema = new mongoose.Schema ({
     username:{
@@ -135,7 +137,8 @@ const Game = new mongoose.model("Game", gameSchema);
 
 app.post('/register', (req, res) => {
     User.register(new User({username : req.body.username}), req.body.password, function(err, user){
-        if(err){
+        if(err)
+        {
             console.log(err)
             res.redirect('/register')
         }
@@ -147,25 +150,7 @@ app.post('/register', (req, res) => {
     })
 });
 
-app.post('/login', (req, res) => {
-    const user = new User({
-        username : req.body.username,
-        password : req.body.password
-    })
-
-    req.login(user, function(err) {
-        if(err){
-            console.log(err)
-        }
-        else{
-            passport.authenticate('local')(req, res, function(){
-                res.redirect('/home')
-            })
-        }
-    })
-    console.log(req.user.username)
-});
-
+app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/notfound' }));
 
 app.get('/:room', (req, res) => {
     console.log("user : " + req.user.username)
