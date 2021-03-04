@@ -143,6 +143,7 @@ function updateStatus () {
   // checkmate?
   if (game.in_checkmate()) {
     status = 'Game over, ' + moveColor + ' is in checkmate.'
+    resignButton.disabled = true // disable the resign button when a player is in checkmate
   }
 
   // draw?
