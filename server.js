@@ -59,6 +59,7 @@ var pgnServer = 'start';
 
 app.get('/', (req, res) => {
     res.redirect('/home')
+    // res.send("Hello World!")
 })
 
 app.get('/login', (req, res) => {
@@ -153,8 +154,10 @@ app.post('/register', (req, res) => {
 app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/notfound' }));
 
 app.get('/:room', (req, res) => {
-    console.log("user : " + req.user.username)
-    var gameoverPgn = 'start'
+    if(req.user != null){ // if req.user is null i.e there is no user at present then this will handle the error
+        console.log("user : " + req.user.username)
+
+        var gameoverPgn = 'start'
 
     Game.findOne({
         room: req.params.room
@@ -172,6 +175,10 @@ app.get('/:room', (req, res) => {
         roomName: req.params.room,
         roomPgn: gameoverPgn
     })
+    }
+    else { // render 404 page if page doesn't exist
+        res.render('404')
+    }
 })
 
 
